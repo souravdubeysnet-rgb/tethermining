@@ -27,7 +27,7 @@
             <div class="hero-section">
                 <div class="hero-content">
                     <div class="badge-pill">🚀 The #1 Premium Yield Platform</div>
-                    <h1 class="hero-title">Earn <span class="highlight-text">3% Monthly</span> on your USDT</h1>
+                    <h1 class="hero-title">Earn <span class="highlight-text" id="typewriter-text"></span><span class="typewriter-cursor"></span> on your USDT</h1>
                     <p class="hero-subtitle">Secure, transparent, and decentralized. Deposit your assets and watch your portfolio grow autonomously every single month.</p>
                     <div class="hero-buttons">
                         <button class="btn-primary btn-lg" onclick="switchMainView('auth-view', 'register')">Create Account <i class="fa-solid fa-arrow-right"></i></button>
@@ -71,7 +71,144 @@
                         <button class="btn-primary w-100" style="margin-top:20px;" onclick="switchMainView('auth-view', 'register')">Start Earning Now</button>
                     </div>
                 </div>
+                </div>
             </div>
+            
+            <!-- Features Section -->
+            <div class="features-section">
+                <div class="features-header">
+                    <div class="badge-pill">Premium Benefits</div>
+                    <h2>No Excuses. No Delays.<br><span class="highlight-text">24 Hours</span> or <span class="tech-glow">We Pay Double</span></h2>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon blue-glow"><i class="fa-solid fa-globe"></i></div>
+                        <h4>160+ Countries Covered</h4>
+                        <p>Global access to the platform from anywhere. No geographical boundaries.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon orange-glow"><i class="fa-solid fa-wallet"></i></div>
+                        <h4>Up to $1.5 million Max Allocation</h4>
+                        <p>Grow your portfolio with massive scaling limits designed for big players.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon green-glow"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                        <h4>24Hrs Performance Reward</h4>
+                        <p>Guaranteed yields credited directly to your balance within 24 hours.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon red-glow"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <h4>On-Demand Rewards</h4>
+                        <p>Criteria met? Withdraw instantly. No more 30-day waiting locks!</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon purple-glow"><i class="fa-solid fa-headset"></i></div>
+                        <h4>24/7 Support</h4>
+                        <p>We are here to answer all your questions. ALL day & night.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon pink-glow"><i class="fa-solid fa-medal"></i></div>
+                        <h4>Best Conditions</h4>
+                        <p>Tight Spreads, No Swaps, and Fast Execution on every digital asset.</p>
+                    </div>
+                </div>
+                
+                <button class="btn-primary btn-lg" style="margin: 50px auto 0 auto; padding: 18px 40px; font-size:1.2rem; border-radius: 50px;" onclick="switchMainView('auth-view', 'register')">Get Funded <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+
+            <!-- Content Blocks Section (Tether inspired) -->
+            <div class="content-blocks-section">
+                <!-- Block 1 -->
+                <div class="content-block">
+                    <div class="block-graphic fade-in">
+                        <div class="large-circle-icon primary-circle">
+                            <i class="fa-brands fa-ethereum"></i>
+                        </div>
+                    </div>
+                    <div class="block-text slide-up">
+                        <h2>Driving the Future of DeFi Yield</h2>
+                        <p>Tetherminig provides the most reliable and secure platform for USDT staking and yield generation. A disruptor to conventional investment systems, we empower users with high-yield passive income opportunities backed by robust digital strategies. Built for the modern crypto investor.</p>
+                        <button class="btn-secondary btn-outline" style="cursor:pointer;" onclick="switchMainView('auth-view', 'register')">Learn How Yields Work</button>
+                    </div>
+                </div>
+
+                <!-- Block 2 -->
+                <div class="content-block reverse">
+                    <div class="block-text slide-up">
+                        <h2>100% Transparent and Verifiable</h2>
+                        <p>Every USDT deposited into Tetherminig is backed by transparent on-chain activity and automated liquidity pools. We guarantee strict risk management through our optimized institutional-grade trading systems. Real-time tracking and performance are always available on your personalized dashboard.</p>
+                        <button class="btn-secondary btn-outline" style="cursor:pointer;" onclick="switchMainView('auth-view', 'login')">View Platform Stats</button>
+                    </div>
+                    <div class="block-graphic fade-in">
+                        <div class="pie-graphic">
+                            <div class="pie-slice slice-1"><i class="fa-brands fa-ethereum"></i></div>
+                            <div class="pie-slice slice-2"><i class="fa-solid fa-dollar-sign"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQs Section -->
+            <div class="faq-section" style="padding: 80px 5%; max-width: 900px; margin: 0 auto 100px auto;">
+                <div style="text-align:center; margin-bottom: 50px;">
+                    <h2>Frequently Asked <span class="highlight-text">Questions</span></h2>
+                </div>
+                
+                <div class="faq-accordion">
+                    <!-- Q1 -->
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <h4>How does the 3% monthly yield work?</h4>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Your deposited USDT is utilized in our optimized institutional-grade liquidity pools and arbitrage strategies. This generates a steady and predictable profit, from which we guarantee a fixed 3% return directly to your account balance every month.</p>
+                        </div>
+                    </div>
+                    <!-- Q2 -->
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <h4>What is the minimum amount I can invest?</h4>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>You can start your path to passive income with a minimum deposit of just 100 USDT. There are no hidden fees or maximum limits on how much you can allocate in our premium tier.</p>
+                        </div>
+                    </div>
+                    <!-- Q3 -->
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <h4>Are there any lock-up periods for my funds?</h4>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>No! We believe in giving you complete control over your assets. You can request a withdrawal of your yields or your initial investment at any time (on-demand rewards), and it will be processed within 24 hours.</p>
+                        </div>
+                    </div>
+                    <!-- Q4 -->
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <h4>How does the referral program work?</h4>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>When you invite a friend using your unique referral code, you will earn an instant 5% bonus based on their deposit amount. This bonus is credited directly to your balance and can be withdrawn or reinvested immediately.</p>
+                        </div>
+                    </div>
+                    <!-- Q5 -->
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <h4>Is my investment secure with Tetherminig?</h4>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes. We employ top-tier security standards, including 100% transparent on-chain reserves and advanced risk-management protocols. The platform is designed specifically to weather market volatility so your principal remains safe while earning steady yields.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- ================= AUTH VIEW ================= -->

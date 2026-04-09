@@ -434,6 +434,40 @@ function showToast(msg, type = 'success') {
     }, 3000);
 }
 
+// --- Typewriter Effect ---
+const typewriterWords = ["3% Monthly", "Referral Rewards", "Reliable Yields", "Passive Income"];
+let typewriterIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+
+function typeWriter() {
+    const textElement = document.getElementById("typewriter-text");
+    if (!textElement) return;
+
+    const currentWord = typewriterWords[typewriterIndex];
+    
+    if (isDeleting) {
+        textElement.innerText = currentWord.substring(0, charIndex - 1);
+        charIndex--;
+    } else {
+        textElement.innerText = currentWord.substring(0, charIndex + 1);
+        charIndex++;
+    }
+
+    let typeSpeed = isDeleting ? 40 : 100;
+
+    if (!isDeleting && charIndex === currentWord.length) {
+        typeSpeed = 2000; // Pause at end of word
+        isDeleting = true;
+    } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        typewriterIndex = (typewriterIndex + 1) % typewriterWords.length;
+        typeSpeed = 500; // Pause before typing new word
+    }
+
+    setTimeout(typeWriter, typeSpeed);
+}
+
 // Auto-check authentication on load
 window.addEventListener('DOMContentLoaded', () => {
     // Check for referral code in URL
@@ -444,6 +478,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     initDefaultView();
+    typeWriter(); // Initialize typewriter effect
 });
 
 window.addEventListener('popstate', (e) => {
