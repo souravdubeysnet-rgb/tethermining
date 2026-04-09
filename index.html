@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetherminig - Maximize Your Crypto Assets</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app" class="dark-theme">
+        
+        <!-- ================= LANDING VIEW ================= -->
+        <div id="landing-view" class="view-section active full-page">
+            <nav class="landing-nav glass-panel">
+                <div class="logo">
+                    <i class="fa-brands fa-ethereum tech-glow"></i>
+                    <h2>Tether<span class="highlight">minig</span></h2>
+                </div>
+                <div class="nav-actions">
+                    <button class="btn-secondary" onclick="switchMainView('auth-view', 'login')">Login</button>
+                    <button class="btn-primary" onclick="switchMainView('auth-view', 'register')">Start Earning</button>
+                </div>
+            </nav>
+
+            <div class="hero-section">
+                <div class="hero-content">
+                    <div class="badge-pill">🚀 The #1 Premium Yield Platform</div>
+                    <h1 class="hero-title">Earn <span class="highlight-text">3% Monthly</span> on your USDT</h1>
+                    <p class="hero-subtitle">Secure, transparent, and decentralized. Deposit your assets and watch your portfolio grow autonomously every single month.</p>
+                    <div class="hero-buttons">
+                        <button class="btn-primary btn-lg" onclick="switchMainView('auth-view', 'register')">Create Account <i class="fa-solid fa-arrow-right"></i></button>
+                        <button class="btn-secondary btn-lg" onclick="switchMainView('auth-view', 'login')">Dashboard</button>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <h3>$1.2M+</h3>
+                            <p>Total Volume</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>3%</h3>
+                            <p>Monthly ROI</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>24/7</h3>
+                            <p>Auto Payouts</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-graphic">
+                    <!-- Interactive Home Calculator -->
+                    <div class="glass-card mockup-card floating" style="text-align:left; padding:30px; animation: slideUp 0.6s ease forwards;">
+                        <h4 style="margin-bottom:15px; font-size:1.4rem;"><i class="fa-solid fa-calculator" style="color:var(--primary-color);"></i> Calculate Earnings</h4>
+                        <label style="color:var(--text-muted); font-size:0.9rem;">Investment Amount (Min 100 USDT)</label>
+                        <input type="range" id="hero-calc-slider" min="100" max="50000" step="100" value="1000" oninput="updateCalculator('hero')">
+                        <div class="calc-inputs" style="display:flex; align-items:center; gap:10px; margin-top:10px; margin-bottom: 20px;">
+                            <input type="number" id="hero-calc-input" min="100" value="1000" oninput="updateCalculator('hero', true)" style="background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); color:white; padding:10px; border-radius:8px; width:100px; outline:none;">
+                            <span>USDT</span>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:12px; border:1px solid var(--panel-border);">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                <span style="color:var(--text-muted);">Monthly Profit</span>
+                                <span class="highlight-text" id="hero-calc-monthly" style="font-weight:bold; font-size:1.2rem;">+$30.00</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span style="color:var(--text-muted);">Yearly Profit</span>
+                                <span class="highlight-text" id="hero-calc-yearly" style="font-weight:bold; font-size:1.2rem;">+$360.00</span>
+                            </div>
+                        </div>
+                        <button class="btn-primary w-100" style="margin-top:20px;" onclick="switchMainView('auth-view', 'register')">Start Earning Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= AUTH VIEW ================= -->
+        <div id="auth-view" class="view-section full-page" style="display:none;">
+            <div class="auth-container glass-panel floating">
+                <button class="btn-secondary" style="margin-bottom: 20px; padding: 8px 16px; border-radius: 50px; border:none; background:transparent;" onclick="switchMainView('landing-view')">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Home
+                </button>
+                <div class="auth-header">
+                    <div class="logo">
+                        <i class="fa-brands fa-ethereum tech-glow"></i>
+                        <h2>Tether<span class="highlight">minig</span></h2>
+                    </div>
+                    <p id="auth-subtitle">Welcome back! Please login.</p>
+                </div>
+                
+                <div class="auth-forms">
+                    <!-- Login Form -->
+                    <form id="login-form" onsubmit="handleLogin(event)">
+                        <div class="input-group">
+                            <label>Email ID / Username</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-envelope"></i>
+                                <input type="text" id="login-username" required placeholder="Enter Email ID">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="login-password" required placeholder="Enter password">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary w-100">Login to Dashboard</button>
+                        <p class="toggle-text">Don't have an account? <a href="#" onclick="toggleAuthForm('register')">Sign up</a></p>
+                    </form>
+
+                    <!-- Register Form -->
+                    <form id="register-form" onsubmit="handleRegister(event)" style="display:none;">
+                        <div style="display:flex; gap:10px;">
+                            <div class="input-group" style="flex:1;">
+                                <label>First Name</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-regular fa-user"></i>
+                                    <input type="text" id="reg-firstname" required placeholder="First name">
+                                </div>
+                            </div>
+                            <div class="input-group" style="flex:1;">
+                                <label>Last Name</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-regular fa-user"></i>
+                                    <input type="text" id="reg-lastname" required placeholder="Last name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Email ID</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-envelope"></i>
+                                <input type="email" id="reg-email" required placeholder="Your email address">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Mobile No.</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-phone"></i>
+                                <input type="tel" id="reg-mobile" required placeholder="Your mobile number">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Referral Code (Optional)</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <input type="text" id="reg-refcode" placeholder="Leave blank if none">
+                            </div>
+                        </div>
+                        <div class="input-group" style="margin-bottom:10px;">
+                            <label>Password</label>
+                            <div class="input-wrapper" style="margin-bottom: 5px;">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="reg-password" required placeholder="Strong password">
+                            </div>
+                            <p id="reg-password-help" style="font-size: 0.75rem; color: #a1a1aa; margin-top: 5px; margin-bottom: 15px; display: none;">
+                                Password must contain at least 8 chars, 1 uppercase, 1 lowercase, 1 number, and 1 symbol (@$!%*?&).
+                            </p>
+                        </div>
+                        <button type="submit" class="btn-primary w-100">Create Account</button>
+                        <p class="toggle-text">Already have an account? <a href="#" onclick="toggleAuthForm('login')">Login</a></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= APP LAYOUT (DASHBOARD) ================= -->
+        <div id="app-layout" class="view-section" style="display:none;">
+            <!-- Sidebar Navigation -->
+            <nav class="sidebar glass-panel">
+                <div class="logo">
+                    <i class="fa-brands fa-ethereum tech-glow"></i>
+                    <h2>Tether<span class="highlight">minig</span></h2>
+                </div>
+                
+                <ul class="nav-links">
+                    <li class="active" onclick="switchTab('dashboard')"><i class="fa-solid fa-house"></i> Dashboard</li>
+                    <li onclick="switchTab('invest')"><i class="fa-solid fa-wallet"></i> Invest</li>
+                    <li onclick="switchTab('withdraw')"><i class="fa-solid fa-money-bill-transfer"></i> Withdraw</li>
+                    <li onclick="switchTab('referrals')"><i class="fa-solid fa-users"></i> Referrals</li>
+                    <li onclick="switchTab('history')"><i class="fa-solid fa-clock-rotate-left"></i> History</li>
+                    <li id="nav-admin" style="display:none;" onclick="switchTab('admin')"><i class="fa-solid fa-lock"></i> Master Panel</li>
+                </ul>
+
+                <div class="user-profile">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="user-info">
+                        <p class="name" id="display-username">User</p>
+                        <p class="status online" style="cursor:pointer;" onclick="logout()">Logout</p>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <header class="top-header glass-panel">
+                    <div class="search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search transactions...">
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-connect" onclick="connectWallet()"><i class="fa-solid fa-wallet"></i> <span id="wallet-text">Connect Wallet</span></button>
+                        <div class="notification-icon">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="badge">0</span>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="app-views-container">
+                    <!-- DASHBOARD VIEW -->
+                    <div id="dashboard-view" class="app-pane active">
+                        <div class="overview-cards">
+                            <div class="card glass-panel gradient-border card-animation" style="animation-delay: 0.1s;">
+                                <div class="card-icon blue-glow"><i class="fa-solid fa-wallet"></i></div>
+                                <div class="card-details">
+                                    <p>Total Balance</p>
+                                    <h3>$<span id="dash-balance">0.00</span> <span class="usdt-badge">USDT</span></h3>
+                                </div>
+                            </div>
+                            <div class="card glass-panel gradient-border card-animation" style="animation-delay: 0.2s;">
+                                <div class="card-icon green-glow"><i class="fa-solid fa-chart-line"></i></div>
+                                <div class="card-details">
+                                    <p>Active Investment</p>
+                                    <h3>$<span id="dash-investment">0.00</span> <span class="usdt-badge">USDT</span></h3>
+                                </div>
+                            </div>
+                            <div class="card glass-panel gradient-border card-animation" style="animation-delay: 0.3s;">
+                                <div class="card-icon purple-glow"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                                <div class="card-details">
+                                    <p>Total Interest Earned (3%)</p>
+                                    <h3 class="highlight-text">+$<span id="dash-earned">0.00</span> <span class="usdt-badge">USDT</span></h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-body">
+                            <!-- ROI Calculator -->
+                            <div class="calculator-section glass-panel fade-in" style="animation-delay: 0.35s;">
+                                <div class="section-header">
+                                    <h3><i class="fa-solid fa-calculator"></i> ROI Calculator</h3>
+                                </div>
+                                <div class="calc-box">
+                                    <label>Investment Amount (Min 100 USDT)</label>
+                                    <input type="range" id="dash-calc-slider" min="100" max="50000" step="100" value="1000" oninput="updateCalculator('dash')">
+                                    <div class="calc-inputs" style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+                                        <input type="number" id="dash-calc-input" min="100" value="1000" oninput="updateCalculator('dash', true)" style="background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); color:white; padding:10px; border-radius:8px; width:100px; outline:none;">
+                                        <span>USDT</span>
+                                    </div>
+                                    <div class="calc-results" style="display:flex; gap:30px; margin-top:20px; padding-top:20px; border-top:1px solid var(--panel-border);">
+                                        <div class="res-item"><p style="color:var(--text-muted); font-size:0.9rem;">Monthly Profit</p><h3 class="highlight-text" id="dash-calc-monthly">+$30.00</h3></div>
+                                        <div class="res-item"><p style="color:var(--text-muted); font-size:0.9rem;">Yearly Profit</p><h3 class="highlight-text" id="dash-calc-yearly">+$360.00</h3></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="chart-section glass-panel fade-in" style="animation-delay: 0.4s;">
+                                <div class="section-header">
+                                    <h3>Interest Yield Overview</h3>
+                                    <button class="btn-secondary">Monthly <i class="fa-solid fa-chevron-down"></i></button>
+                                </div>
+                                <div class="dummy-chart">
+                                    <div class="bar-container"><div class="bar" style="height: 30%"></div><span>Jan</span></div>
+                                    <div class="bar-container"><div class="bar" style="height: 45%"></div><span>Feb</span></div>
+                                    <div class="bar-container"><div class="bar" style="height: 60%"></div><span>Mar</span></div>
+                                    <div class="bar-container"><div class="bar" style="height: 50%"></div><span>Apr</span></div>
+                                    <div class="bar-container"><div class="bar" style="height: 80%"></div><span>May</span></div>
+                                    <div class="bar-container"><div class="bar highlight-bar" style="height: 95%"></div><span>Jun</span></div>
+                                </div>
+                            </div>
+
+                            <div class="quick-actions glass-panel fade-in" style="animation-delay: 0.5s;">
+                                <h3>Quick Actions</h3>
+                                <div class="action-grid">
+                                    <button class="action-btn" onclick="switchTab('invest')">
+                                        <i class="fa-solid fa-arrow-down"></i>
+                                        Deposit
+                                    </button>
+                                    <button class="action-btn" onclick="switchTab('withdraw')">
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                        Withdraw
+                                    </button>
+                                    <button class="action-btn">
+                                        <i class="fa-solid fa-users"></i>
+                                        Referrals
+                                    </button>
+                                    <button class="action-btn">
+                                        <i class="fa-solid fa-gear"></i>
+                                        Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INVEST VIEW -->
+                    <div id="invest-view" class="app-pane" style="display:none;">
+                        <div class="invest-container glass-panel fade-in">
+                            <h2>Invest USDT & Earn 3%</h2>
+                            <p class="subtitle">Select network and deposit funds to start earning monthly yield. Minimum deposit is 100 USDT.</p>
+                            
+                            <div class="network-selector">
+                                <div class="network-card active" onclick="selectNetwork(this)">TRC20 (Tron)</div>
+                                <div class="network-card" onclick="selectNetwork(this)">BEP20 (BSC)</div>
+                                <div class="network-card" onclick="selectNetwork(this)">ERC20 (ETH)</div>
+                            </div>
+
+                            <div class="deposit-address-box">
+                                <p>Send USDT to your unique address:</p>
+                                <div class="address-copy">
+                                    <input type="text" id="deposit-address" value="TWeRXYZ123ABCxyz789QWERTY" readonly>
+                                    <button onclick="copyAddress()"><i class="fa-regular fa-copy"></i></button>
+                                </div>
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TWeRXYZ123ABCxyz789QWERTY&bgcolor=121212&color=00ffcc" alt="QR Code" class="qr-code">
+                            </div>
+
+                            <div class="deposit-form">
+                                <label>Expected Deposit Amount (USDT) - Min 100 USDT</label>
+                                <input type="number" id="dep-amount" placeholder="Enter amount e.g. 1000" min="100">
+                                <label>Transaction Hash (TxID)</label>
+                                <input type="text" id="dep-txid" placeholder="Paste TxID here after sending">
+                                <button class="btn-primary mt-2" onclick="submitDeposit()">Confirm Deposit</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- WITHDRAW VIEW -->
+                    <div id="withdraw-view" class="app-pane" style="display:none;">
+                        <div class="invest-container glass-panel fade-in">
+                            <h2>Withdraw USDT</h2>
+                            <p class="subtitle">Request a withdrawal to your personal wallet. Processing takes up to 24 hours.</p>
+
+                            <div class="deposit-address-box" style="margin-top:20px;">
+                                <p>Your Saved Wallet Address:</p>
+                                <div class="address-copy">
+                                    <input type="text" id="user-wallet-address" placeholder="e.g. TWeRXYZ... or 0x89AB..." onchange="saveWalletAddress()">
+                                    <button onclick="saveWalletAddress()"><i class="fa-solid fa-save"></i></button>
+                                </div>
+                                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:8px;">Save a wallet address to request withdrawals.</p>
+                            </div>
+
+                            <div class="deposit-form mt-4">
+                                <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                                    <label style="margin:0;">Amount to Withdraw (USDT)</label>
+                                    <span style="color:var(--text-muted); font-size:0.9rem;">Available: $<span id="withdraw-available">0.00</span></span>
+                                </div>
+                                <input type="number" id="withdraw-amount" placeholder="Enter amount e.g. 50">
+                                
+                                <button class="btn-primary w-100" style="margin-top:20px;" onclick="submitWithdraw()">Request Withdrawal</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REFERRALS VIEW -->
+                    <div id="referrals-view" class="app-pane" style="display:none;">
+                        <div class="invest-container glass-panel fade-in">
+                            <h2><i class="fa-solid fa-users"></i> Affiliate Program</h2>
+                            <p class="subtitle">Invite friends and earn a 5% instant bonus of all their deposits permanently!</p>
+
+                            <div class="deposit-address-box" style="margin-top:20px;">
+                                <p>Your Unique Invite Link:</p>
+                                <div class="address-copy">
+                                    <input type="text" id="ref-link-input" readonly>
+                                    <button onclick="copyRefLink()"><i class="fa-regular fa-copy" id="copy-ref-icon"></i></button>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; margin-top:20px; gap:20px;">
+                                <div style="background:rgba(0,0,0,0.2); flex:1; padding:20px; border-radius:12px; border:1px solid var(--panel-border); text-align:center;">
+                                    <p style="color:var(--text-muted); font-size:0.9rem;">Total Friends</p>
+                                    <h3 class="highlight-text" id="ref-count">0</h3>
+                                </div>
+                                <div style="background:rgba(0,0,0,0.2); flex:1; padding:20px; border-radius:12px; border:1px solid var(--panel-border); text-align:center;">
+                                    <p style="color:var(--text-muted); font-size:0.9rem;">Total Earned</p>
+                                    <h3 class="highlight-text" id="ref-earned">$0.00</h3>
+                                </div>
+                            </div>
+
+                            <h3 style="margin-top: 30px;">Your Invitees</h3>
+                            <div class="table-container mt-2">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Date Joined</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ref-list-table">
+                                        <tr><td colspan="2" style="text-align:center;">No friends invited yet.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADMIN VIEW -->
+                    <div id="admin-view" class="app-pane" style="display:none;">
+                        <div class="admin-header glass-panel fade-in">
+                            <h2><i class="fa-solid fa-lock"></i> Master Admin Panel</h2>
+                            <p class="subtitle">Platform Overview & Management</p>
+                            <button class="btn-secondary mt-2" onclick="distributeInterest()">Run Monthly 3% Yield (Simulated)</button>
+                        </div>
+                        
+                        <div class="admin-stats mt-4 fade-in">
+                            <div class="stat-card">
+                                <h3>Total Invested (TVL)</h3>
+                                <h1 class="highlight-text" id="admin-tvl">$0.00</h1>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Total Users</h3>
+                                <h1 class="highlight-text" id="admin-users">0</h1>
+                            </div>
+                        </div>
+
+                        <!-- Admin Security Settings -->
+                        <div class="table-container glass-panel mt-4 fade-in">
+                            <h3><i class="fa-solid fa-gear"></i> Master Security Settings</h3>
+                            <div style="display:flex; gap:20px; align-items:flex-end; margin-top:15px; flex-wrap:wrap;">
+                                <div style="flex:1; min-width: 200px;">
+                                    <label>New Master Username</label>
+                                    <input type="text" id="new-admin-user" placeholder="Enter new username">
+                                </div>
+                                <div style="flex:1; min-width: 200px;">
+                                    <label>New Master Password</label>
+                                    <input type="password" id="new-admin-pass" placeholder="Enter new password">
+                                </div>
+                                <button class="btn-primary" onclick="updateAdminCredentials()" style="padding: 12px 24px;">Update Credentials</button>
+                            </div>
+                        </div>
+
+                        <div class="table-container glass-panel mt-4 fade-in">
+                            <h3>Pending Transactions</h3>
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Details</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-tx-table">
+                                    <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- NEW: All Users Table -->
+                        <div class="table-container glass-panel mt-4 fade-in">
+                            <h3>All Registered Users</h3>
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Balance</th>
+                                        <th>Investment</th>
+                                        <th>Total Earned</th>
+                                        <th>Joined Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-table">
+                                    <tr><td colspan="6" style="text-align:center;">Loading users...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="edit-user-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Edit User Details</h3>
+            <input type="hidden" id="edit-user-id">
+            <div class="deposit-form" style="margin-top:0;">
+                <label>Balance (USDT)</label>
+                <input type="number" id="edit-user-balance" step="0.01">
+                <label>Active Investment (USDT)</label>
+                <input type="number" id="edit-user-investment" step="0.01">
+                <label>Total Earned (USDT)</label>
+                <input type="number" id="edit-user-earned" step="0.01">
+                <label>New Password (Optional, leave blank to keep current)</label>
+                <input type="password" id="edit-user-password" placeholder="Enter new password">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn-primary" onclick="submitUserEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
