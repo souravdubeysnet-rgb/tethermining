@@ -1,7 +1,4 @@
-// Tetherminig Frontend Logic
-// Integrated with Node.js SQLite Backend
-
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = '/api';
 
 // --- View State Management ---
 function switchMainView(viewId, authMode = 'login', pushHistory = true) {
