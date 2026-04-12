@@ -50,11 +50,37 @@ const db = new sqlite3.Database(dbPath, (err) => {
         db.run('ALTER TABLE users ADD COLUMN mobile TEXT', () => {});
         db.run('ALTER TABLE users ADD COLUMN status TEXT DEFAULT "pending"', () => {});
 
+        // V4 Migrations
+        db.run('ALTER TABLE users ADD COLUMN otp_code TEXT', () => {});
+        db.run('ALTER TABLE users ADD COLUMN otp_expires DATETIME', () => {});
         // Create Admin Master User if not exists
         const bcrypt = require('bcrypt');
         bcrypt.hash('admin123', 10, (err, hash) => {
             if(!err) {
-                db.run(`INSERT OR IGNORE INTO users (username, password, role) VALUES ('admin', ?, 'admin')`, [hash]);
+                db.run(`INSERT OR IGNORE INTO users (username, password, role) VALUES ('admin', ?, 'admin')`, [hash], () => {
+                    // Make sure admin is never stuck in pending state
+                    db.run(`UPDATE users SET status = 'active' WHERE role = 'admin'`, () => {});
+                });
+            }
+        });
+
+        // V5 Migrations: Global Site Settings (Payment Wallets, QR Codes)
+        db.run(`CREATE TABLE IF NOT EXISTS settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_value TEXT
+        )`, (err) => {
+            if (!err) {
+                const defaults = {
+                    'trc20_wallet': 'TWeRXYZ123ABCxyz789QWERTY_DEFAULT',
+                    'trc20_qr': 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TWeRXYZ_TRC20&bgcolor=121212&color=00ffcc',
+                    'bep20_wallet': '0x89ABcd12345efGhI67890JKL_DEFAULT',
+                    'bep20_qr': 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=0x89AB_BEP20&bgcolor=121212&color=00ffcc',
+                    'erc20_wallet': '0xETHAddressExample90123XYZ_DEFAULT',
+                    'erc20_qr': 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=0xETH_ERC20&bgcolor=121212&color=00ffcc'
+                };
+                for (const [key, val] of Object.entries(defaults)) {
+                    db.run(`INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`, [key, val]);
+                }
             }
         });
     }

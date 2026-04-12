@@ -1,10 +1,20 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jwt-simple');
 const rateLimit = require('express-rate-limit'); // Added express-rate-limit
+const nodemailer = require('nodemailer');
 const db = require('./database');
 const path = require('path');
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASSWORD
+    }
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,8 +29,17 @@ const authLimiter = rateLimit({
 
 app.use(cors());
 app.use(express.json());
-// Serve the beautiful frontend we built earlier
-app.use(express.static(path.join(__dirname)));
+
+// Serve the frontend without caching (so user always sees latest changes)
+app.use(express.static(path.join(__dirname), {
+    etag: false,
+    maxAge: 0,
+    setHeaders: (res, path) => {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+    }
+}));
 
 // ===== AUTH API =====
 // Register user
@@ -37,28 +56,48 @@ app.post('/api/register', authLimiter, async (req, res) => {
         return res.status(400).json({ error: 'Weak password. Must contain 8+ characters, uppercase, lowercase, number, and special character.' });
     }
 
-    bcrypt.hash(password, 10, (err, hash) => {
-        if(err) return res.status(500).json({ error: 'Server error' });
+    db.get(`SELECT id FROM users WHERE email = ? COLLATE NOCASE OR username = ? COLLATE NOCASE`, [email, username], (err, existingUser) => {
+        if (existingUser) return res.status(400).json({ error: 'Email already registered' });
+
+        bcrypt.hash(password, 10, (err, hash) => {
+            if(err) return res.status(500).json({ error: 'Server error' });
         
         const newRefCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpires = new Date(Date.now() + 10 * 60000).toISOString(); // 10 mins
         
+        const insertUser = (referrerId) => {
+            db.run(`INSERT INTO users (username, first_name, last_name, email, mobile, password, referral_code, referred_by, status, otp_code, otp_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`, 
+                [username, first_name, last_name, email, mobile, hash, newRefCode, referrerId, otpCode, otpExpires], function(err) {
+                if (err) return res.status(400).json({ error: 'Email already registered' });
+                
+                // Send Email out of band
+                transporter.sendMail({
+                    from: `"Tetherminig" <${process.env.SMTP_EMAIL}>`,
+                    to: email,
+                    subject: 'Tetherminig - Verify Your Account',
+                    html: `<div style="font-family: Arial, sans-serif; padding: 20px;">
+                        <h2 style="color: #00b3ff;">Welcome to Tetherminig!</h2>
+                        <p>Thank you for registering. Please use the following code to verify your email address:</p>
+                        <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold; border-radius: 8px;">${otpCode}</div>
+                        <p>This code will expire in 10 minutes.</p>
+                        <p>If you did not request this, please ignore this email.</p>
+                    </div>`
+                }).catch(console.error);
+
+                res.json({ message: 'OTP sent to your email', needsVerification: true, email: email, userId: this.lastID });
+            });
+        };
+
         if (refCode) {
             db.get(`SELECT id FROM users WHERE referral_code = ?`, [refCode], (err, referrer) => {
-                const referrerId = referrer ? referrer.id : null;
-                db.run(`INSERT INTO users (username, first_name, last_name, email, mobile, password, referral_code, referred_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
-                    [username, first_name, last_name, email, mobile, hash, newRefCode, referrerId], function(err) {
-                    if (err) return res.status(400).json({ error: 'Email already registered' });
-                    res.json({ message: 'User registered successfully', userId: this.lastID });
-                });
+                insertUser(referrer ? referrer.id : null);
             });
         } else {
-            db.run(`INSERT INTO users (username, first_name, last_name, email, mobile, password, referral_code) VALUES (?, ?, ?, ?, ?, ?, ?)`, 
-                [username, first_name, last_name, email, mobile, hash, newRefCode], function(err) {
-                if (err) return res.status(400).json({ error: 'Email already registered' });
-                res.json({ message: 'User registered successfully', userId: this.lastID });
-            });
+            insertUser(null);
         }
-    });
+    }); // End bcrypt.hash
+    }); // End db.get email check
 });
 
 // Login user
@@ -68,6 +107,10 @@ app.post('/api/login', authLimiter, (req, res) => {
     db.get(`SELECT * FROM users WHERE email = ? OR username = ?`, [email, email], (err, user) => {
         if (err || !user) return res.status(401).json({ error: 'Invalid email or password' });
 
+        if (user.status === 'pending') {
+            return res.status(403).json({ error: 'Please verify your email first', needsVerification: true, email: user.email });
+        }
+
         bcrypt.compare(password, user.password, (err, result) => {
             if (err || !result) return res.status(401).json({ error: 'Invalid username or password' });
             
@@ -76,6 +119,30 @@ app.post('/api/login', authLimiter, (req, res) => {
         });
     });
 });
+
+// Verify OTP
+app.post('/api/verify-otp', authLimiter, (req, res) => {
+    const { email, otp } = req.body;
+    db.get(`SELECT * FROM users WHERE email = ? OR username = ?`, [email, email], (err, user) => {
+        if (err || !user) return res.status(404).json({ error: 'User not found' });
+        
+        if (user.status !== 'pending') return res.status(400).json({ error: 'Already verified. You can login.' });
+        
+        if (user.otp_code !== otp) return res.status(400).json({ error: 'Invalid OTP code' });
+        
+        if (new Date(user.otp_expires) < new Date()) {
+            return res.status(400).json({ error: 'OTP has expired. Please contact support.' });
+        }
+        
+        db.run(`UPDATE users SET status = 'active', otp_code = NULL, otp_expires = NULL WHERE id = ?`, [user.id], function(err) {
+            if (err) return res.status(500).json({ error: 'Database error' });
+            
+            const token = jwt.encode({ id: user.id, role: user.role }, JWT_SECRET);
+            res.json({ message: 'Email verified successfully! You are now logged in.', token, role: user.role, name: user.first_name ? `${user.first_name} ${user.last_name}` : user.username, profile: { balance: user.balance, investment: user.active_investment } });
+        });
+    });
+});
+
 
 // Middleware to protect routes
 const authMiddleware = (req, res, next) => {
@@ -102,7 +169,11 @@ const adminMiddleware = (req, res, next) => {
 app.get('/api/user/dashboard', authMiddleware, (req, res) => {
     db.get(`SELECT balance, active_investment, total_earned, wallet_address FROM users WHERE id = ?`, [req.user.id], (err, user) => {
         if (err || !user) return res.status(404).json({ error: 'User not found' });
-        res.json(user);
+        
+        db.all(`SELECT type, amount, status FROM transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 5`, [req.user.id], (err, txs) => {
+            user.recent_transactions = txs || [];
+            res.json(user);
+        });
     });
 });
 
@@ -164,6 +235,27 @@ app.get('/api/user/referrals', authMiddleware, (req, res) => {
 });
 
 // ===== ADMIN API =====
+// Get platform settings
+app.get('/api/settings', authMiddleware, (req, res) => {
+    db.all(`SELECT setting_key, setting_value FROM settings`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        const settings = {};
+        rows.forEach(r => { settings[r.setting_key] = r.setting_value });
+        res.json(settings);
+    });
+});
+
+// Update platform settings
+app.post('/api/admin/settings', authMiddleware, adminMiddleware, (req, res) => {
+    const updates = req.body; // Expecting { trc20_wallet: '...', trc20_qr: '...' }
+    db.serialize(() => {
+        for (const [key, value] of Object.entries(updates)) {
+            db.run(`INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)`, [key, value]);
+        }
+    });
+    res.json({ message: 'Settings updated successfully!' });
+});
+
 // Get platform stats
 app.get('/api/admin/stats', authMiddleware, adminMiddleware, (req, res) => {
     db.get(`SELECT SUM(active_investment) as tvl, COUNT(*) as totalUsers FROM users WHERE role = 'user'`, [], (err, stats) => {

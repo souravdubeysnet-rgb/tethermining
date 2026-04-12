@@ -16,12 +16,16 @@ function switchMainView(viewId, authMode = 'login', pushHistory = true) {
         setTimeout(() => target.classList.add('active'), 10);
     }
     
+    // Automatically reset scroll to top when changing views
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     if(viewId === 'auth-view') {
         toggleAuthForm(authMode);
     }
     
     if(viewId === 'app-layout') {
         initDashboard();
+        loadPlatformSettings();
     }
     
     if (pushHistory) {
@@ -55,16 +59,22 @@ function switchTab(tabId) {
 function toggleAuthForm(mode) {
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
+    const otpForm = document.getElementById('otp-form');
     const subtitle = document.getElementById('auth-subtitle');
     
+    if(loginForm) loginForm.style.display = 'none';
+    if(registerForm) registerForm.style.display = 'none';
+    if(otpForm) otpForm.style.display = 'none';
+
     if (mode === 'login') {
-        loginForm.style.display = 'block';
-        registerForm.style.display = 'none';
-        subtitle.innerText = 'Welcome back! Please login.';
-    } else {
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'block';
-        subtitle.innerText = 'Create an account to start earning.';
+        if(loginForm) loginForm.style.display = 'block';
+        if(subtitle) subtitle.innerText = 'Welcome back! Please login.';
+    } else if (mode === 'register') {
+        if(registerForm) registerForm.style.display = 'block';
+        if(subtitle) subtitle.innerText = 'Create an account to start earning.';
+    } else if (mode === 'otp') {
+        if(otpForm) otpForm.style.display = 'block';
+        if(subtitle) subtitle.innerText = 'Almost there! Verify your email.';
     }
 }
 
@@ -81,10 +91,16 @@ async function apiCall(endpoint, method = 'GET', body = null) {
             body: body ? JSON.stringify(body) : null
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'API Error');
+        if (!res.ok) {
+            const err = new Error(data.error || 'API Error');
+            err.data = data;
+            throw err;
+        }
         return data;
     } catch (err) {
-        showToast(err.message, 'error');
+        if (!(err.data && err.data.needsVerification)) {
+            showToast(err.message, 'error');
+        }
         throw err;
     }
 }
@@ -104,7 +120,11 @@ async function handleLogin(e) {
         showToast('Login successful!', 'success');
         switchMainView('app-layout');
     } catch(err) {
-        // error handled in apiCall
+        if (err.data && err.data.needsVerification) {
+            document.getElementById('otp-email').value = err.data.email;
+            toggleAuthForm('otp');
+            showToast('Please check your email to verify your account', 'error');
+        }
     } finally {
         btn.innerText = 'Login to Dashboard';
     }
@@ -134,15 +154,45 @@ async function handleRegister(e) {
         if (pendingRef) payload.refCode = pendingRef;
         else if (formRefCode) payload.refCode = formRefCode;
 
-        await apiCall('/register', 'POST', payload);
+        const res = await apiCall('/register', 'POST', payload);
         
         localStorage.removeItem('pending_ref');
-        showToast('Registration successful! Please login.', 'success');
-        toggleAuthForm('login');
+        
+        if (res.needsVerification) {
+            document.getElementById('otp-email').value = res.email;
+            showToast('OTP sent! Please check your email.', 'success');
+            toggleAuthForm('otp');
+        } else {
+            showToast('Registration successful! Please login.', 'success');
+            toggleAuthForm('login');
+        }
     } catch(err) {
         // error handled
     } finally {
         btn.innerText = 'Create Account';
+    }
+}
+
+async function handleVerifyOTP(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.innerText = 'Verifying...';
+    try {
+        const email = document.getElementById('otp-email').value;
+        const otp = document.getElementById('otp-code').value;
+        
+        const data = await apiCall('/verify-otp', 'POST', { email, otp });
+        
+        localStorage.setItem('crypto_token', data.token);
+        localStorage.setItem('crypto_role', data.role);
+        localStorage.setItem('crypto_user', data.name);
+        
+        showToast('Email Verified & Logged in!', 'success');
+        switchMainView('app-layout');
+    } catch(err) {
+        // error toast already handled in apiCall
+    } finally {
+        btn.innerText = 'Verify Account';
     }
 }
 
@@ -159,9 +209,15 @@ function logout() {
 // --- Dashboard & Data ---
 function initDashboard() {
     const role = localStorage.getItem('crypto_role');
-    const username = localStorage.getItem('crypto_user');
+    let username = localStorage.getItem('crypto_user') || 'User';
     
     document.getElementById('display-username').innerText = username;
+    
+    // Capitalize first letter for Welcome banner
+    const firstName = username.split(' ')[0];
+    const displayFirst = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+    const welcomeNameEl = document.getElementById('dash-welcome-name');
+    if (welcomeNameEl) welcomeNameEl.innerText = displayFirst;
     
     if (role === 'admin') {
         const adminLnk = document.getElementById('nav-admin');
@@ -208,10 +264,41 @@ async function loadUserData() {
         document.getElementById('dash-balance').innerText = data.balance.toFixed(2);
         document.getElementById('dash-investment').innerText = data.active_investment.toFixed(2);
         document.getElementById('dash-earned').innerText = data.total_earned.toFixed(2);
-        document.getElementById('withdraw-available').innerText = data.balance.toFixed(2);
+        const wdReady = document.getElementById('withdraw-available');
+        if (wdReady) wdReady.innerText = data.balance.toFixed(2);
+        
         if(data.wallet_address) {
-            document.getElementById('user-wallet-address').value = data.wallet_address;
+            const wAdd = document.getElementById('user-wallet-address');
+            if(wAdd) wAdd.value = data.wallet_address;
         }
+
+        // Render Recent Transactions on Dashboard
+        const txTbody = document.getElementById('dash-recent-tx');
+        if (txTbody) {
+            if (data.recent_transactions && data.recent_transactions.length > 0) {
+                txTbody.innerHTML = '';
+                data.recent_transactions.forEach(tx => {
+                    const isDeposit = tx.type === 'deposit';
+                    const color = isDeposit ? 'var(--primary-color)' : 'var(--danger)';
+                    const sign = isDeposit ? '+' : '-';
+                    let statusBadge = '';
+                    if (tx.status === 'pending') statusBadge = '<span style="color:#ff9800; font-size:0.8rem;"><i class="fa-solid fa-clock"></i> Pending</span>';
+                    else if (tx.status === 'approved') statusBadge = '<span style="color:var(--success); font-size:0.8rem;"><i class="fa-solid fa-check"></i> Success</span>';
+                    else statusBadge = `<span style="color:var(--text-muted); font-size:0.8rem;">${tx.status}</span>`;
+
+                    txTbody.innerHTML += `
+                        <tr>
+                            <td style="text-transform: capitalize; font-weight:500;">${tx.type}</td>
+                            <td style="color:${color}; font-weight:600;">${sign}$${tx.amount.toFixed(2)}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                txTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px; color:var(--text-muted);">No recent activity</td></tr>';
+            }
+        }
+
     } catch(err) {
         if(err.message.includes('Unauthorized')) logout();
     }
@@ -513,13 +600,95 @@ function connectWallet() {
     }
 }
 
+let platformSettings = {};
+
+async function loadPlatformSettings() {
+    try {
+        platformSettings = await apiCall('/settings', 'GET');
+        // Update Admin UI fields if admin is logged in
+        const role = localStorage.getItem('crypto_role');
+        if (role === 'admin') {
+            document.getElementById('admin-trc20-wallet').value = platformSettings.trc20_wallet || '';
+            document.getElementById('admin-trc20-qr').value = platformSettings.trc20_qr || '';
+            if (platformSettings.trc20_qr) {
+                document.getElementById('admin-trc20-preview').src = platformSettings.trc20_qr;
+                document.getElementById('admin-trc20-preview').style.display = 'block';
+            }
+            
+            document.getElementById('admin-bep20-wallet').value = platformSettings.bep20_wallet || '';
+            document.getElementById('admin-bep20-qr').value = platformSettings.bep20_qr || '';
+            if (platformSettings.bep20_qr) {
+                document.getElementById('admin-bep20-preview').src = platformSettings.bep20_qr;
+                document.getElementById('admin-bep20-preview').style.display = 'block';
+            }
+            
+            document.getElementById('admin-erc20-wallet').value = platformSettings.erc20_wallet || '';
+            document.getElementById('admin-erc20-qr').value = platformSettings.erc20_qr || '';
+            if (platformSettings.erc20_qr) {
+                document.getElementById('admin-erc20-preview').src = platformSettings.erc20_qr;
+                document.getElementById('admin-erc20-preview').style.display = 'block';
+            }
+        }
+        
+        // Setup initial network selection for user
+        const activeNetwork = document.querySelector('.network-card.active');
+        if (activeNetwork) selectNetwork(activeNetwork);
+        
+    } catch(err) {
+        console.log("Failed to load settings");
+    }
+}
+
+async function saveAdminPaymentSettings() {
+    const updates = {
+        trc20_wallet: document.getElementById('admin-trc20-wallet').value,
+        trc20_qr: document.getElementById('admin-trc20-qr').value,
+        bep20_wallet: document.getElementById('admin-bep20-wallet').value,
+        bep20_qr: document.getElementById('admin-bep20-qr').value,
+        erc20_wallet: document.getElementById('admin-erc20-wallet').value,
+        erc20_qr: document.getElementById('admin-erc20-qr').value
+    };
+    
+    try {
+        const res = await apiCall('/admin/settings', 'POST', updates);
+        showToast(res.message, 'success');
+        loadPlatformSettings(); // Reload locally
+    } catch (err) {}
+}
+
+function handleQrUpload(input, hiddenId, previewId) {
+    if (input.files && input.files[0]) {
+        if (input.files[0].size > 3000000) {
+            showToast('Image size too large. Keep it under 3MB', 'error');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById(hiddenId).value = e.target.result;
+            const preview = document.getElementById(previewId);
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 function selectNetwork(element) {
     document.querySelectorAll('.network-card').forEach(el => el.classList.remove('active'));
     element.classList.add('active');
     const addressInput = document.getElementById('deposit-address');
-    if(element.innerText.includes('TRC20')) addressInput.value = "TWeRXYZ123ABCxyz789QWERTY";
-    else if (element.innerText.includes('BEP20')) addressInput.value = "0x89ABcd12345efGhI67890JKL";
-    else addressInput.value = "0xETHAddressExample90123XYZ";
+    const qrImg = document.getElementById('deposit-qr');
+    
+    if(element.innerText.includes('TRC20')) {
+        addressInput.value = platformSettings.trc20_wallet || "Loading...";
+        qrImg.src = platformSettings.trc20_qr || "";
+    } else if (element.innerText.includes('BEP20')) {
+        addressInput.value = platformSettings.bep20_wallet || "Loading...";
+        qrImg.src = platformSettings.bep20_qr || "";
+    } else {
+        addressInput.value = platformSettings.erc20_wallet || "Loading...";
+        qrImg.src = platformSettings.erc20_qr || "";
+    }
 }
 
 function copyAddress() {

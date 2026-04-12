@@ -71,7 +71,6 @@
                         <button class="btn-primary w-100" style="margin-top:20px;" onclick="switchMainView('auth-view', 'register')">Start Earning Now</button>
                     </div>
                 </div>
-                </div>
             </div>
             
             <!-- Features Section -->
@@ -213,12 +212,12 @@
 
         <!-- ================= AUTH VIEW ================= -->
         <div id="auth-view" class="view-section full-page" style="display:none;">
-            <div class="auth-container glass-panel floating">
-                <button class="btn-secondary" style="margin-bottom: 20px; padding: 8px 16px; border-radius: 50px; border:none; background:transparent;" onclick="switchMainView('landing-view')">
-                    <i class="fa-solid fa-arrow-left"></i> Back to Home
-                </button>
-                <div class="auth-header">
-                    <div class="logo">
+            <div class="auth-container premium-glass floating">
+                <div class="auth-return">
+                    <a href="#" onclick="switchMainView('landing-view')" style="color:var(--text-muted); text-decoration:none; font-size:0.9rem; font-weight:500;"><i class="fa-solid fa-arrow-left"></i> Return to Homepage</a>
+                </div>
+                <div class="auth-header" style="margin-top: 20px;">
+                    <div class="logo" style="cursor:pointer;" onclick="switchMainView('landing-view')">
                         <i class="fa-brands fa-ethereum tech-glow"></i>
                         <h2>Tether<span class="highlight">minig</span></h2>
                     </div>
@@ -298,6 +297,24 @@
                         <button type="submit" class="btn-primary w-100">Create Account</button>
                         <p class="toggle-text">Already have an account? <a href="#" onclick="toggleAuthForm('login')">Login</a></p>
                     </form>
+
+                    <!-- OTP Verification Form -->
+                    <form id="otp-form" onsubmit="handleVerifyOTP(event)" style="display:none;">
+                        <input type="hidden" id="otp-email" value="">
+                        <div style="text-align:center; margin-bottom: 20px;">
+                            <h3 style="color:var(--text-color);">Email Verification</h3>
+                            <p style="color:var(--text-muted); font-size:0.9rem;">We've sent a 6-digit code to your email.</p>
+                        </div>
+                        <div class="input-group">
+                            <label>Verification Code</label>
+                            <div class="input-wrapper" style="letter-spacing: 2px;">
+                                <i class="fa-solid fa-key"></i>
+                                <input type="text" id="otp-code" required placeholder="123456" maxlength="6" style="text-align:center; font-size: 1.2rem; font-weight: bold;">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary w-100 mt-2">Verify Account</button>
+                        <p class="toggle-text"><a href="#" onclick="toggleAuthForm('login')">Back to Login</a></p>
+                    </form>
                 </div>
             </div>
         </div>
@@ -348,84 +365,130 @@
                 <div class="app-views-container">
                     <!-- DASHBOARD VIEW -->
                     <div id="dashboard-view" class="app-pane active">
+                        <!-- Welcome Banner Premium Style -->
+                        <div class="welcome-banner glass-panel gradient-border fade-in">
+                            <div class="banner-text">
+                                <h1>Welcome back, <span class="highlight-text" id="dash-welcome-name">User</span>! <span class="wave">👋</span></h1>
+                                <p>Here's what is happening with your portfolio today. Keep growing your wealth.</p>
+                            </div>
+                            <div class="banner-graphic">
+                                <div class="floating-coin"><i class="fa-brands fa-ethereum"></i></div>
+                            </div>
+                        </div>
+
                         <div class="overview-cards">
-                            <div class="card glass-panel gradient-border card-animation" style="animation-delay: 0.1s;">
+                            <div class="card premium-glass gradient-border card-animation" style="animation-delay: 0.1s;">
+                                <div class="mesh-bg mesh-blue"></div>
                                 <div class="card-icon blue-glow"><i class="fa-solid fa-wallet"></i></div>
                                 <div class="card-details">
                                     <p>Total Balance</p>
                                     <h3>$<span id="dash-balance">0.00</span> <span class="usdt-badge">USDT</span></h3>
                                 </div>
                             </div>
-                            <div class="card glass-panel gradient-border card-animation" style="animation-delay: 0.2s;">
+                            <div class="card premium-glass gradient-border card-animation" style="animation-delay: 0.2s;">
+                                <div class="mesh-bg mesh-green"></div>
                                 <div class="card-icon green-glow"><i class="fa-solid fa-chart-line"></i></div>
                                 <div class="card-details">
                                     <p>Active Investment</p>
                                     <h3>$<span id="dash-investment">0.00</span> <span class="usdt-badge">USDT</span></h3>
                                 </div>
                             </div>
-                            <div class="card glass-panel gradient-border card-animation" style="animation-delay: 0.3s;">
+                            <div class="card premium-glass gradient-border card-animation" style="animation-delay: 0.3s;">
+                                <div class="mesh-bg mesh-purple"></div>
                                 <div class="card-icon purple-glow"><i class="fa-solid fa-hand-holding-dollar"></i></div>
                                 <div class="card-details">
-                                    <p>Total Interest Earned (3%)</p>
+                                    <p>Total Interest Earned</p>
                                     <h3 class="highlight-text">+$<span id="dash-earned">0.00</span> <span class="usdt-badge">USDT</span></h3>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="dashboard-body">
-                            <!-- ROI Calculator -->
-                            <div class="calculator-section glass-panel fade-in" style="animation-delay: 0.35s;">
-                                <div class="section-header">
-                                    <h3><i class="fa-solid fa-calculator"></i> ROI Calculator</h3>
-                                </div>
-                                <div class="calc-box">
-                                    <label>Investment Amount (Min 100 USDT)</label>
-                                    <input type="range" id="dash-calc-slider" min="100" max="50000" step="100" value="1000" oninput="updateCalculator('dash')">
-                                    <div class="calc-inputs" style="display:flex; align-items:center; gap:10px; margin-top:10px;">
-                                        <input type="number" id="dash-calc-input" min="100" value="1000" oninput="updateCalculator('dash', true)" style="background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); color:white; padding:10px; border-radius:8px; width:100px; outline:none;">
-                                        <span>USDT</span>
+                        <div class="dashboard-grid">
+                            <div class="left-column">
+                                <div class="chart-section premium-glass fade-in" style="animation-delay: 0.4s;">
+                                    <div class="section-header">
+                                        <h3><i class="fa-solid fa-chart-pie"></i> Yield Overview</h3>
+                                        <button class="btn-secondary btn-sm" style="border-radius:20px;">Monthly <i class="fa-solid fa-chevron-down"></i></button>
                                     </div>
-                                    <div class="calc-results" style="display:flex; gap:30px; margin-top:20px; padding-top:20px; border-top:1px solid var(--panel-border);">
-                                        <div class="res-item"><p style="color:var(--text-muted); font-size:0.9rem;">Monthly Profit</p><h3 class="highlight-text" id="dash-calc-monthly">+$30.00</h3></div>
-                                        <div class="res-item"><p style="color:var(--text-muted); font-size:0.9rem;">Yearly Profit</p><h3 class="highlight-text" id="dash-calc-yearly">+$360.00</h3></div>
+                                    <div class="dummy-chart premium-chart">
+                                        <div class="bar-container"><div class="bar" style="height: 30%"></div><span>Jan</span></div>
+                                        <div class="bar-container"><div class="bar" style="height: 45%"></div><span>Feb</span></div>
+                                        <div class="bar-container"><div class="bar" style="height: 60%"></div><span>Mar</span></div>
+                                        <div class="bar-container"><div class="bar" style="height: 50%"></div><span>Apr</span></div>
+                                        <div class="bar-container"><div class="bar" style="height: 80%"></div><span>May</span></div>
+                                        <div class="bar-container"><div class="bar highlight-bar glass-bar" style="height: 95%">
+                                            <div class="tooltip-dummy">Current</div>
+                                        </div><span>Jun</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- Recent Transactions Table -->
+                                <div class="transactions-section premium-glass fade-in mt-4" style="animation-delay: 0.5s;">
+                                    <div class="section-header">
+                                        <h3><i class="fa-solid fa-list"></i> Recent Activity</h3>
+                                        <span class="badge-pill" style="margin:0; padding: 4px 10px; font-size:0.8rem; cursor:pointer;" onclick="switchTab('history')">View All</span>
+                                    </div>
+                                    <div class="table-container" style="overflow-x: auto;">
+                                        <table class="data-table dashboard-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Type</th>
+                                                    <th>Amount</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="dash-recent-tx">
+                                                <tr><td colspan="3" style="text-align:center; padding: 20px; color:var(--text-muted);">No recent activity</td></tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="chart-section glass-panel fade-in" style="animation-delay: 0.4s;">
-                                <div class="section-header">
-                                    <h3>Interest Yield Overview</h3>
-                                    <button class="btn-secondary">Monthly <i class="fa-solid fa-chevron-down"></i></button>
+                            <div class="right-column">
+                                <!-- ROI Calculator -->
+                                <div class="calculator-section premium-glass fade-in" style="animation-delay: 0.35s;">
+                                    <div class="section-header">
+                                        <h3><i class="fa-solid fa-calculator"></i> Profit Estimator</h3>
+                                    </div>
+                                    <div class="calc-box">
+                                        <label>Amount (USDT)</label>
+                                        <div class="calc-inputs">
+                                            <input type="number" id="dash-calc-input" min="100" value="1000" oninput="updateCalculator('dash', true)">
+                                            <div class="badge-pill" style="margin:0;">USDT</div>
+                                        </div>
+                                        <input type="range" id="dash-calc-slider" min="100" max="50000" step="100" value="1000" oninput="updateCalculator('dash')">
+                                        
+                                        <div class="calc-result-box mt-4">
+                                            <div class="res-item">
+                                                <p>Monthly ROI</p>
+                                                <h3 class="highlight-text" id="dash-calc-monthly">+$30.00</h3>
+                                            </div>
+                                        </div>
+                                        <button class="btn-primary w-100 mt-2" onclick="switchTab('invest')" style="border-radius:12px; padding:14px;">Deposit Now</button>
+                                    </div>
                                 </div>
-                                <div class="dummy-chart">
-                                    <div class="bar-container"><div class="bar" style="height: 30%"></div><span>Jan</span></div>
-                                    <div class="bar-container"><div class="bar" style="height: 45%"></div><span>Feb</span></div>
-                                    <div class="bar-container"><div class="bar" style="height: 60%"></div><span>Mar</span></div>
-                                    <div class="bar-container"><div class="bar" style="height: 50%"></div><span>Apr</span></div>
-                                    <div class="bar-container"><div class="bar" style="height: 80%"></div><span>May</span></div>
-                                    <div class="bar-container"><div class="bar highlight-bar" style="height: 95%"></div><span>Jun</span></div>
-                                </div>
-                            </div>
 
-                            <div class="quick-actions glass-panel fade-in" style="animation-delay: 0.5s;">
-                                <h3>Quick Actions</h3>
-                                <div class="action-grid">
-                                    <button class="action-btn" onclick="switchTab('invest')">
-                                        <i class="fa-solid fa-arrow-down"></i>
-                                        Deposit
-                                    </button>
-                                    <button class="action-btn" onclick="switchTab('withdraw')">
-                                        <i class="fa-solid fa-arrow-up"></i>
-                                        Withdraw
-                                    </button>
-                                    <button class="action-btn">
-                                        <i class="fa-solid fa-users"></i>
-                                        Referrals
-                                    </button>
-                                    <button class="action-btn">
-                                        <i class="fa-solid fa-gear"></i>
-                                        Settings
-                                    </button>
+                                <div class="quick-actions premium-glass fade-in mt-4" style="animation-delay: 0.5s;">
+                                    <h3>Quick Actions</h3>
+                                    <div class="action-grid">
+                                        <button class="action-btn" onclick="switchTab('invest')">
+                                            <div class="icon-circle green-bg"><i class="fa-solid fa-arrow-down"></i></div>
+                                            <span>Deposit</span>
+                                        </button>
+                                        <button class="action-btn" onclick="switchTab('withdraw')">
+                                            <div class="icon-circle red-bg"><i class="fa-solid fa-arrow-up"></i></div>
+                                            <span>Withdraw</span>
+                                        </button>
+                                        <button class="action-btn" onclick="switchTab('referrals')">
+                                            <div class="icon-circle purple-bg"><i class="fa-solid fa-users"></i></div>
+                                            <span>Referrals</span>
+                                        </button>
+                                        <button class="action-btn" onclick="switchTab('history')">
+                                            <div class="icon-circle blue-bg"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                                            <span>History</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -446,10 +509,10 @@
                             <div class="deposit-address-box">
                                 <p>Send USDT to your unique address:</p>
                                 <div class="address-copy">
-                                    <input type="text" id="deposit-address" value="TWeRXYZ123ABCxyz789QWERTY" readonly>
+                                    <input type="text" id="deposit-address" value="Loading..." readonly>
                                     <button onclick="copyAddress()"><i class="fa-regular fa-copy"></i></button>
                                 </div>
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TWeRXYZ123ABCxyz789QWERTY&bgcolor=121212&color=00ffcc" alt="QR Code" class="qr-code">
+                                <img src="" alt="QR Code" class="qr-code" id="deposit-qr">
                             </div>
 
                             <div class="deposit-form">
@@ -563,6 +626,43 @@
                                     <input type="password" id="new-admin-pass" placeholder="Enter new password">
                                 </div>
                                 <button class="btn-primary" onclick="updateAdminCredentials()" style="padding: 12px 24px;">Update Credentials</button>
+                            </div>
+                        </div>
+
+                        <!-- NEW: Payment Settings -->
+                        <div class="table-container glass-panel mt-4 fade-in">
+                            <h3><i class="fa-solid fa-wallet"></i> Platform Payment Settings</h3>
+                            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:15px;">Configure the deposit wallet addresses and QR codes shown to users.</p>
+                            
+                            <div class="deposit-form" style="margin-top:0;">
+                                <h4 style="margin-top:10px; color:var(--primary-color);">TRC20 (Tron) Network</h4>
+                                <input type="text" id="admin-trc20-wallet" placeholder="TRC20 Wallet Address">
+                                <label style="display:block; margin: 10px 0; cursor:pointer; color:var(--primary-color); border: 1px dashed var(--panel-border); padding: 10px; text-align: center; border-radius: 8px;">
+                                    <input type="file" id="admin-trc20-file" accept="image/*" style="display:none;" onchange="handleQrUpload(this, 'admin-trc20-qr', 'admin-trc20-preview')">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload TRC20 QR Code
+                                </label>
+                                <img id="admin-trc20-preview" style="max-height: 100px; display:none; border-radius:8px; margin-bottom:10px;">
+                                <input type="hidden" id="admin-trc20-qr">
+                                
+                                <h4 style="margin-top:20px; color:var(--primary-color);">BEP20 (BSC) Network</h4>
+                                <input type="text" id="admin-bep20-wallet" placeholder="BEP20 Wallet Address">
+                                <label style="display:block; margin: 10px 0; cursor:pointer; color:var(--primary-color); border: 1px dashed var(--panel-border); padding: 10px; text-align: center; border-radius: 8px;">
+                                    <input type="file" id="admin-bep20-file" accept="image/*" style="display:none;" onchange="handleQrUpload(this, 'admin-bep20-qr', 'admin-bep20-preview')">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload BEP20 QR Code
+                                </label>
+                                <img id="admin-bep20-preview" style="max-height: 100px; display:none; border-radius:8px; margin-bottom:10px;">
+                                <input type="hidden" id="admin-bep20-qr">
+
+                                <h4 style="margin-top:20px; color:var(--primary-color);">ERC20 (ETH) Network</h4>
+                                <input type="text" id="admin-erc20-wallet" placeholder="ERC20 Wallet Address">
+                                <label style="display:block; margin: 10px 0; cursor:pointer; color:var(--primary-color); border: 1px dashed var(--panel-border); padding: 10px; text-align: center; border-radius: 8px;">
+                                    <input type="file" id="admin-erc20-file" accept="image/*" style="display:none;" onchange="handleQrUpload(this, 'admin-erc20-qr', 'admin-erc20-preview')">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload ERC20 QR Code
+                                </label>
+                                <img id="admin-erc20-preview" style="max-height: 100px; display:none; border-radius:8px; margin-bottom:10px;">
+                                <input type="hidden" id="admin-erc20-qr">
+
+                                <button class="btn-primary mt-4" style="padding: 12px 24px;" onclick="saveAdminPaymentSettings()">Save Payment Settings</button>
                             </div>
                         </div>
 
